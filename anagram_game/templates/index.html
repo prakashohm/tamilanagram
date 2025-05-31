@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="ta">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Tamil Anagram Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #f0f2f5;
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        h2 {
+            color: #1a1a1a;
+            font-size: 1.5rem;
+            margin-bottom: 2rem;
+            padding: 0 1rem;
+            text-align: center;
+            line-height: 1.4;
+        }
+
+        #tiles {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 2rem;
+            padding: 1rem;
+        }
+
+        .tile {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 60px;
+            height: 60px;
+            font-size: 28px;
+            background-color: #ffffff;
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            cursor: pointer;
+            touch-action: none;
+            user-select: none;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .tile:active {
+            transform: scale(0.95);
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .tile.dragging {
+            opacity: 0.5;
+            transform: scale(1.1);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        button[type="submit"] {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 15px 32px;
+            font-size: 1rem;
+            font-weight: 600;
+            border-radius: 25px;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(76, 175, 80, 0.3);
+            transition: all 0.3s ease;
+            width: 100%;
+            max-width: 200px;
+            margin-top: 1rem;
+        }
+
+        button[type="submit"]:active {
+            transform: scale(0.98);
+            box-shadow: 0 1px 4px rgba(76, 175, 80, 0.2);
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 16px;
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+            position: relative;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+            animation: modalSlideIn 0.3s ease;
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                transform: translateY(20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .modal-title {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: #1a1a1a;
+        }
+
+        .modal-message {
+            font-size: 1.2rem;
+            margin-bottom: 1.5rem;
+            color: #333;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 1.5rem;
+        }
+
+        .modal-button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 1rem;
+            font-weight: 600;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 140px;
+        }
+
+        .modal-button.retry {
+            background-color: #2196F3;
+        }
+
+        .modal-button:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+
+        .modal-button:active {
+            transform: translateY(0);
+        }
+
+        .success-icon {
+            color: #4CAF50;
+            font-size: 48px;
+            margin-bottom: 1rem;
+        }
+
+        .failure-icon {
+            color: #f44336;
+            font-size: 48px;
+            margin-bottom: 1rem;
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 15px;
+            }
+
+            h2 {
+                font-size: 1.2rem;
+                margin-bottom: 1.5rem;
+            }
+
+            .tile {
+                width: 50px;
+                height: 50px;
+                font-size: 24px;
+            }
+
+            #tiles {
+                gap: 8px;
+                padding: 0.5rem;
+            }
+
+            .modal-content {
+                padding: 1.5rem;
+            }
+
+            .modal-title {
+                font-size: 1.2rem;
+            }
+
+            .modal-message {
+                font-size: 1rem;
+            }
+        }
+    </style>
+    <script src="https://unpkg.com/grapheme-splitter@1.0.4/index.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h2>தமிழ் எழுத்துக்களை சரியான வார்த்தையாக அமைக்கவும்</h2>
+        <div id="tiles"></div>
+
+        <form id="anagramForm" onsubmit="return checkAnswer(event)">
+            <input type="hidden" name="guess" id="guessInput">
+            <button type="submit">சரிபார்க்கவும்</button>
+        </form>
+    </div>
+
+    <!-- Result Modal -->
+    <div id="resultModal" class="modal">
+        <div class="modal-content">
+            <div id="resultIcon"></div>
+            <h3 class="modal-title" id="modalTitle"></h3>
+            <p class="modal-message" id="modalMessage"></p>
+            <div class="modal-buttons" id="modalButtons"></div>
+        </div>
+    </div>
+
+    <script>
+        const scrambled = "{{ scrambled }}";
+        const originalWord = "{{ original_word }}";  // We'll need this for client-side validation
+        const splitter = new GraphemeSplitter();
+        const graphemes = splitter.splitGraphemes(scrambled);
+        const tilesContainer = document.getElementById('tiles');
+        let selectedTile = null;
+
+        function createTile(char, index) {
+            const div = document.createElement('div');
+            div.className = 'tile';
+            div.textContent = char;
+            div.dataset.index = index;
+            div.addEventListener('click', handleTileClick);
+            return div;
+        }
+
+        function handleTileClick(e) {
+            const clickedTile = e.target;
+            
+            if (selectedTile === null) {
+                selectedTile = clickedTile;
+                selectedTile.classList.add('dragging');
+            } else {
+                selectedTile.classList.remove('dragging');
+                swapTiles(
+                    parseInt(selectedTile.dataset.index),
+                    parseInt(clickedTile.dataset.index)
+                );
+                selectedTile = null;
+            }
+        }
+
+        function renderTiles() {
+            tilesContainer.innerHTML = '';
+            graphemes.forEach((char, i) => {
+                tilesContainer.appendChild(createTile(char, i));
+            });
+        }
+
+        function swapTiles(i, j) {
+            [graphemes[i], graphemes[j]] = [graphemes[j], graphemes[i]];
+            renderTiles();
+        }
+
+        function checkAnswer(event) {
+            event.preventDefault();
+            const guess = graphemes.join('');
+            const isCorrect = guess === originalWord;
+            
+            showResult(isCorrect, guess);
+            return false;
+        }
+
+        function showResult(isCorrect, guess) {
+            const modal = document.getElementById('resultModal');
+            const title = document.getElementById('modalTitle');
+            const message = document.getElementById('modalMessage');
+            const icon = document.getElementById('resultIcon');
+            const buttonsContainer = document.getElementById('modalButtons');
+
+            if (isCorrect) {
+                icon.innerHTML = '✅';
+                icon.className = 'success-icon';
+                title.textContent = 'வாழ்த்துக்கள்!';
+                message.textContent = 'நீங்கள் சரியாக கண்டுபிடித்துவிட்டீர்கள்!';
+                buttonsContainer.innerHTML = `
+                    <button class="modal-button" onclick="playAgain()">புதிய விளையாட்டு</button>
+                `;
+            } else {
+                icon.innerHTML = '❌';
+                icon.className = 'failure-icon';
+                title.textContent = 'தவறான விடை';
+                message.textContent = `சரியான வார்த்தை: ${originalWord}`;
+                buttonsContainer.innerHTML = `
+                    <button class="modal-button retry" onclick="retryGame()">மீண்டும் முயற்சி</button>
+                    <button class="modal-button" onclick="playAgain()">புதிய விளையாட்டு</button>
+                `;
+            }
+
+            modal.classList.add('show');
+        }
+
+        function retryGame() {
+            const modal = document.getElementById('resultModal');
+            modal.classList.remove('show');
+            // Reset the tiles to their current scrambled state
+            renderTiles();
+        }
+
+        function playAgain() {
+            window.location.href = '/';
+        }
+
+        // Add reset selection on container click
+        tilesContainer.addEventListener('click', (e) => {
+            if (e.target === tilesContainer && selectedTile) {
+                selectedTile.classList.remove('dragging');
+                selectedTile = null;
+            }
+        });
+
+        // Close modal when clicking outside
+        document.getElementById('resultModal').addEventListener('click', (e) => {
+            if (e.target === document.getElementById('resultModal')) {
+                e.target.classList.remove('show');
+            }
+        });
+
+        renderTiles();
+    </script>
+</body>
+</html>

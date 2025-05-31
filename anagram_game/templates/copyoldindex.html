@@ -1,0 +1,15 @@
+<!doctype html>
+<html>
+<head>
+    <title>Anagram Game</title>
+</head>
+<body>
+    <h1>🔀Anagram Game 🔀</h1>
+    <p>Unscramble the word: <strong>{{ scrambled }}</strong></p>
+    <form action="/check" method="post">
+        <input type="text" name="guess" placeholder="Your guess" required />
+        <button type="submit">Submit</button>
+    </form>
+</body>
+</html>
+

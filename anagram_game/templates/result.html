@@ -1,0 +1,15 @@
+<!doctype html>
+<html>
+<head>
+    <title>Result</title>
+</head>
+<body>
+    {% if result %}
+        <h2>✅ Correct! "{{ guess }}" is the right answer!</h2>
+    {% else %}
+        <h2>❌ Incorrect. You guessed "{{ guess }}", but the correct word was "{{ original_word }}".</h2>
+    {% endif %}
+    <a href="/">Play Again</a>
+</body>
+</html>
+
