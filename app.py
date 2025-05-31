@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect
+from flask import Flask, render_template, request, redirect, jsonify
 import random
 import regex
 import os
@@ -20,13 +20,12 @@ def load_words():
                 'advanced': ["கணினி", "புத்தகம்"]
             }
 
-        # Categorize words based on length (using graphemes)
+        # Categorize words based on length
         basic_words = []
         advanced_words = []
         
         for word in words:
-            graphemes = split_graphemes(word)
-            if len(graphemes) <= 4:
+            if len(word) <= 4:
                 basic_words.append(word)
             else:
                 advanced_words.append(word)
@@ -48,20 +47,36 @@ def load_words():
             'advanced': ["கணினி", "புத்தகம்"]
         }
 
-def split_graphemes(word):
-    return regex.findall(r'\X', word)
-
 def shuffle_tamil_word(word):
-    chars = split_graphemes(word)
-    random.shuffle(chars)
-    return ''.join(chars)
+    """Shuffle Tamil word while preserving proper character boundaries"""
+    try:
+        # Simplified pattern for better performance
+        chars = regex.findall(r'[\u0B80-\u0BFF][\u0BBE-\u0BCD\u0BD7]?', word)
+        if not chars:
+            # Fallback to simple character list if pattern doesn't match
+            chars = list(word)
+        random.shuffle(chars)
+        return ''.join(chars)
+    except Exception as e:
+        print(f"Error shuffling word: {e}")
+        # Fallback to simple character list
+        chars = list(word)
+        random.shuffle(chars)
+        return ''.join(chars)
 
 def get_scrambled_word(word):
     """Scramble the characters of a word"""
-    while True:
-        scrambled = shuffle_tamil_word(word)
-        if scrambled != word:
-            return scrambled
+    try:
+        max_attempts = 5  # Limit the number of attempts to prevent infinite loop
+        for _ in range(max_attempts):
+            scrambled = shuffle_tamil_word(word)
+            if scrambled != word:
+                return scrambled
+        # If we couldn't get a different scramble, just reverse the word
+        return word[::-1]
+    except Exception as e:
+        print(f"Error scrambling word: {e}")
+        return word[::-1]  # Fallback to simple reverse
 
 @app.route('/')
 def index():
@@ -80,7 +95,14 @@ def play(level):
                          scrambled=scrambled, 
                          original_word=word, 
                          level=level,
-                         word_length=len(split_graphemes(word)))
+                         word_length=len(word))
+
+@app.route('/play/<level>', methods=['POST'])
+def check_answer(level):
+    answer = request.form.get('answer', '')
+    original_word = request.form.get('original_word', '')
+    is_correct = answer == original_word
+    return jsonify({'correct': is_correct})
 
 if __name__ == '__main__':
     app.run(debug=True)

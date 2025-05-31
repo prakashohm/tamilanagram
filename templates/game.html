@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="ta">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Tamil Anagram Game</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Tamil:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/grapheme-splitter@1.0.4/index.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        :root {
+            --gradient-bg: linear-gradient(135deg, #764BA2 0%, #667EEA 100%);
+            --card-bg: rgba(255, 255, 255, 0.1);
+            --text-primary: #ffffff;
+            --text-secondary: rgba(255, 255, 255, 0.8);
+            --shadow-color: rgba(0, 0, 0, 0.1);
+            --basic-badge: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            --advanced-badge: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            --tile-bg: rgba(255, 255, 255, 0.12);
+            --submit-gradient: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%);
+            font-family: 'Noto Sans Tamil', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        body {
+            font-family: 'Noto Sans Tamil', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--gradient-bg);
+            min-height: 100vh;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: var(--text-primary);
+            text-rendering: optimizeLegibility;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto;
+            text-align: center;
+            position: relative;
+            padding: 1.5rem;
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        .back-button {
+            position: absolute;
+            left: 16px;
+            top: 16px;
+            background: var(--card-bg);
+            border: none;
+            font-size: 1.2rem;
+            cursor: pointer;
+            color: var(--text-primary);
+            padding: 8px;
+            border-radius: 50%;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+            text-decoration: none;
+            box-shadow: 0 2px 8px var(--shadow-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+        }
+
+        .back-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px var(--shadow-color);
+        }
+
+        .level-indicator {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 1.5rem;
+            animation: fadeInDown 0.8s ease-out;
+        }
+
+        .level-indicator.basic {
+            background: var(--basic-badge);
+            box-shadow: 0 2px 8px rgba(79, 172, 254, 0.4);
+        }
+
+        .level-indicator.advanced {
+            background: var(--advanced-badge);
+            box-shadow: 0 2px 8px rgba(245, 87, 108, 0.4);
+        }
+
+        .word-length {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+            animation: fadeInUp 0.8s ease-out 0.2s backwards;
+        }
+
+        h2 {
+            font-size: 1.5rem;
+            margin-bottom: 2rem;
+            padding: 0 1rem;
+            text-align: center;
+            line-height: 1.4;
+            text-shadow: 1px 1px 2px var(--shadow-color);
+            animation: fadeInUp 0.8s ease-out 0.4s backwards;
+        }
+
+        #tiles {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 2rem;
+            padding: 1rem;
+            animation: fadeIn 1s ease-out 0.6s backwards;
+        }
+
+        .tile {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 50px;
+            height: 50px;
+            font-size: 24px;
+            font-family: 'Noto Sans Tamil', sans-serif;
+            background: var(--tile-bg);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 12px;
+            box-shadow: 0 4px 12px var(--shadow-color);
+            cursor: pointer;
+            touch-action: none;
+            user-select: none;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            line-height: 1;
+            font-weight: 500;
+            padding: 0;
+            margin: 0;
+            text-align: center;
+            vertical-align: middle;
+            position: relative;
+        }
+
+        .tile:active {
+            transform: scale(0.95);
+            box-shadow: 0 2px 8px var(--shadow-color);
+        }
+
+        .tile.dragging {
+            opacity: 0.9;
+            transform: scale(1.05);
+            box-shadow: 0 8px 24px var(--shadow-color);
+            z-index: 10;
+        }
+
+        button[type="submit"] {
+            font-family: 'Noto Sans Tamil', sans-serif;
+            background: var(--submit-gradient);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 1rem;
+            font-weight: 600;
+            border-radius: 20px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(79, 172, 254, 0.3);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            width: 100%;
+            max-width: 200px;
+            margin-top: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            animation: fadeInUp 0.8s ease-out 0.8s backwards;
+        }
+
+        button[type="submit"]:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(79, 172, 254, 0.4);
+        }
+
+        button[type="submit"]:active {
+            transform: translateY(0);
+            box-shadow: 0 4px 12px rgba(79, 172, 254, 0.3);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.show {
+            display: flex;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .modal-content {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 2rem;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 320px;
+            text-align: center;
+            position: relative;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            animation: modalSlideIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .modal-title {
+            font-size: 1.3rem;
+            margin-bottom: 1rem;
+            color: #1a1a1a;
+            font-weight: 700;
+        }
+
+        .modal-message {
+            font-size: 1rem;
+            margin-bottom: 1.5rem;
+            color: #333;
+            line-height: 1.4;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 1.5rem;
+        }
+
+        .modal-button {
+            font-family: 'Noto Sans Tamil', sans-serif;
+            background: var(--submit-gradient);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            border-radius: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 120px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            box-shadow: 0 4px 12px rgba(79, 172, 254, 0.3);
+        }
+
+        .modal-button.retry {
+            background: var(--basic-badge);
+        }
+
+        .modal-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(79, 172, 254, 0.4);
+        }
+
+        .modal-button:active {
+            transform: translateY(0);
+            box-shadow: 0 4px 12px rgba(79, 172, 254, 0.3);
+        }
+
+        .success-icon {
+            color: #4CAF50;
+            font-size: 48px;
+            margin-bottom: 1rem;
+            animation: iconPop 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .failure-icon {
+            color: #f44336;
+            font-size: 48px;
+            margin-bottom: 1rem;
+            animation: iconPop 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        @keyframes iconPop {
+            0% {
+                transform: scale(0);
+                opacity: 0;
+            }
+            50% {
+                transform: scale(1.1);
+            }
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-15px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(15px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                transform: translateY(20px) scale(0.95);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0) scale(1);
+                opacity: 1;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 12px;
+            }
+
+            .container {
+                padding: 1rem;
+            }
+
+            h2 {
+                font-size: 1.3rem;
+                margin-bottom: 1.5rem;
+            }
+
+            .tile {
+                width: 45px;
+                height: 45px;
+                font-size: 22px;
+            }
+
+            #tiles {
+                gap: 8px;
+                padding: 0.8rem;
+            }
+
+            .modal-content {
+                padding: 1.5rem;
+            }
+
+            .modal-title {
+                font-size: 1.2rem;
+            }
+
+            .modal-message {
+                font-size: 0.9rem;
+            }
+
+            .modal-button {
+                padding: 8px 16px;
+                font-size: 0.85rem;
+                min-width: 100px;
+            }
+
+            .level-indicator {
+                padding: 0.4rem 0.8rem;
+                font-size: 0.8rem;
+            }
+
+            .word-length {
+                font-size: 0.8rem;
+            }
+
+            button[type="submit"] {
+                padding: 10px 20px;
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="/" class="back-button">←</a>
+        <span class="level-indicator {{ level }}">{{ level }}</span>
+        <p class="word-length">எழுத்துக்கள்: {{ word_length }}</p>
+        <h2>சொல்லைக் கண்டுபிடி</h2>
+        
+        <div id="tiles"></div>
+
+        <form id="answer-form" method="POST">
+            <input type="hidden" id="answer" name="answer" value="{{ scrambled }}">
+            <input type="hidden" name="original_word" value="{{ original_word }}">
+            <button type="submit">சரிபார்க்கவும்</button>
+        </form>
+    </div>
+
+    <div id="result-modal" class="modal">
+        <div class="modal-content">
+            <div id="result-icon"></div>
+            <h3 class="modal-title" id="result-title"></h3>
+            <p class="modal-message" id="result-message"></p>
+            <div class="modal-buttons">
+                <button class="modal-button retry" onclick="retrySameWord()">அதே வார்த்தையை மீண்டும் முயற்சி செய்யவும்</button>
+                <button class="modal-button" onclick="getNewWord()">புதிய வார்த்தை</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const splitter = new GraphemeSplitter();
+        const scrambledWord = "{{ scrambled }}";
+        let graphemes;
+        
+        try {
+            // Try the Tamil pattern first
+            const tamilPattern = /[\u0B80-\u0BFF][\u0BBE-\u0BCD\u0BD7]?/g;
+            graphemes = scrambledWord.match(tamilPattern);
+            
+            // If no matches or error, fallback to grapheme splitter
+            if (!graphemes || graphemes.length === 0) {
+                graphemes = splitter.splitGraphemes(scrambledWord);
+            }
+        } catch (e) {
+            console.error('Error splitting characters:', e);
+            graphemes = splitter.splitGraphemes(scrambledWord);
+        }
+
+        const tilesContainer = document.getElementById('tiles');
+        const answerInput = document.getElementById('answer');
+        let draggedTile = null;
+
+        // Create tiles for each grapheme
+        graphemes.forEach((char, index) => {
+            const tile = document.createElement('div');
+            tile.className = 'tile';
+            tile.draggable = true;
+            tile.textContent = char;
+            tile.dataset.char = char;
+            
+            tile.addEventListener('dragstart', handleDragStart);
+            tile.addEventListener('dragend', handleDragEnd);
+            tile.addEventListener('dragover', handleDragOver);
+            tile.addEventListener('drop', handleDrop);
+            
+            // Touch events for mobile
+            tile.addEventListener('touchstart', handleTouchStart);
+            tile.addEventListener('touchmove', handleTouchMove);
+            tile.addEventListener('touchend', handleTouchEnd);
+            
+            tilesContainer.appendChild(tile);
+        });
+
+        function handleDragStart(e) {
+            draggedTile = this;
+            this.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/plain', this.dataset.char);
+        }
+
+        function handleDragEnd(e) {
+            draggedTile.classList.remove('dragging');
+            updateAnswer();
+        }
+
+        function handleDragOver(e) {
+            if (e.preventDefault) {
+                e.preventDefault();
+            }
+            e.dataTransfer.dropEffect = 'move';
+            return false;
+        }
+
+        function handleDrop(e) {
+            if (e.stopPropagation) {
+                e.stopPropagation();
+            }
+            if (draggedTile !== this) {
+                const allTiles = [...tilesContainer.children];
+                const draggedIndex = allTiles.indexOf(draggedTile);
+                const droppedIndex = allTiles.indexOf(this);
+                
+                if (draggedIndex < droppedIndex) {
+                    this.parentNode.insertBefore(draggedTile, this.nextSibling);
+                } else {
+                    this.parentNode.insertBefore(draggedTile, this);
+                }
+            }
+            return false;
+        }
+
+        // Touch event handlers
+        let touchStartX, touchStartY, touchTile;
+
+        function handleTouchStart(e) {
+            const touch = e.touches[0];
+            touchStartX = touch.clientX;
+            touchStartY = touch.clientY;
+            touchTile = this;
+            this.classList.add('dragging');
+        }
+
+        function handleTouchMove(e) {
+            if (!touchTile) return;
+            e.preventDefault();
+            
+            const touch = e.touches[0];
+            const moveX = touch.clientX - touchStartX;
+            const moveY = touch.clientY - touchStartY;
+            
+            touchTile.style.transform = `translate(${moveX}px, ${moveY}px)`;
+        }
+
+        function handleTouchEnd(e) {
+            if (!touchTile) return;
+            
+            const touch = e.changedTouches[0];
+            const endX = touch.clientX;
+            const endY = touch.clientY;
+            
+            // Find the tile element at the touch end position
+            const targetTile = document.elementFromPoint(endX, endY);
+            
+            if (targetTile && targetTile.classList.contains('tile') && targetTile !== touchTile) {
+                if (targetTile.nextSibling === touchTile) {
+                    tilesContainer.insertBefore(touchTile, targetTile);
+                } else {
+                    tilesContainer.insertBefore(touchTile, targetTile.nextSibling);
+                }
+            }
+            
+            touchTile.style.transform = '';
+            touchTile.classList.remove('dragging');
+            touchTile = null;
+            updateAnswer();
+        }
+
+        function updateAnswer() {
+            const currentWord = Array.from(tilesContainer.children)
+                .map(tile => tile.dataset.char)
+                .join('');
+            answerInput.value = currentWord;
+        }
+
+        // Form submission
+        document.getElementById('answer-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            fetch(window.location.href, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: new URLSearchParams({
+                    answer: answerInput.value,
+                    original_word: document.querySelector('input[name="original_word"]').value
+                }).toString()
+            })
+            .then(response => response.json())
+            .then(data => {
+                const modal = document.getElementById('result-modal');
+                const icon = document.getElementById('result-icon');
+                const title = document.getElementById('result-title');
+                const message = document.getElementById('result-message');
+                const buttons = modal.querySelector('.modal-buttons');
+
+                if (data.correct) {
+                    icon.innerHTML = '🎉';
+                    icon.className = 'success-icon';
+                    title.textContent = 'வாழ்த்துக்கள்!';
+                    message.textContent = 'நீங்கள் சரியான சொல்லைக் கண்டுபிடித்துவிட்டீர்கள்!';
+                    buttons.innerHTML = `
+                        <button class="modal-button" onclick="window.location='/'">முகப்பு</button>
+                        <button class="modal-button" onclick="getNewWord()">புதிய வார்த்தை</button>
+                    `;
+                } else {
+                    icon.innerHTML = '😕';
+                    icon.className = 'failure-icon';
+                    title.textContent = 'மீண்டும் முயற்சி செய்யவும்';
+                    message.textContent = 'சரியான சொல்லைக் கண்டுபிடிக்க முயற்சி செய்யவும்.';
+                    buttons.innerHTML = `
+                        <button class="modal-button retry" onclick="retrySameWord()">அதே வார்த்தையை மீண்டும் முயற்சி செய்யவும்</button>
+                        <button class="modal-button" onclick="getNewWord()">புதிய வார்த்தை</button>
+                    `;
+                }
+
+                modal.classList.add('show');
+            });
+        });
+
+        // Close modal when clicking outside
+        document.getElementById('result-modal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                this.classList.remove('show');
+            }
+        });
+
+        function retrySameWord() {
+            // Reset tiles to original scrambled state
+            tilesContainer.innerHTML = '';
+            graphemes.forEach((char, index) => {
+                const tile = document.createElement('div');
+                tile.className = 'tile';
+                tile.draggable = true;
+                tile.textContent = char;
+                tile.dataset.char = char;
+                
+                tile.addEventListener('dragstart', handleDragStart);
+                tile.addEventListener('dragend', handleDragEnd);
+                tile.addEventListener('dragover', handleDragOver);
+                tile.addEventListener('drop', handleDrop);
+                
+                tile.addEventListener('touchstart', handleTouchStart);
+                tile.addEventListener('touchmove', handleTouchMove);
+                tile.addEventListener('touchend', handleTouchEnd);
+                
+                tilesContainer.appendChild(tile);
+            });
+            document.getElementById('result-modal').classList.remove('show');
+            updateAnswer();
+        }
+
+        function getNewWord() {
+            window.location.reload();
+        }
+    </script>
+</body>
+</html> 
