@@ -79,6 +79,40 @@
             box-shadow: 0 4px 12px var(--shadow-color);
         }
 
+        .clear-cache-button {
+            position: absolute;
+            right: 16px;
+            top: 16px;
+            background: var(--card-bg);
+            border: none;
+            font-size: 1.2rem;
+            cursor: pointer;
+            color: var(--text-primary);
+            padding: 8px;
+            border-radius: 50%;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+            text-decoration: none;
+            box-shadow: 0 2px 8px var(--shadow-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+        }
+
+        .clear-cache-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px var(--shadow-color);
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .clear-cache-button:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 6px var(--shadow-color);
+        }
+
         .level-indicator {
             display: inline-block;
             padding: 0.5rem 1rem;
@@ -210,11 +244,13 @@
             z-index: 1000;
             align-items: center;
             justify-content: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
         }
 
         .modal.show {
             display: flex;
-            animation: fadeIn 0.3s ease-out;
+            opacity: 1;
         }
 
         .modal-content {
@@ -226,8 +262,13 @@
             text-align: center;
             position: relative;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-            animation: modalSlideIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            transform: scale(0.9);
+            transition: transform 0.3s ease;
             border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .modal.show .modal-content {
+            transform: scale(1);
         }
 
         .modal-title {
@@ -352,6 +393,101 @@
             }
         }
 
+        .game-controls {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            width: 100%;
+            max-width: 200px;
+            margin: 0 auto;
+        }
+
+        .hint-button {
+            font-family: 'Noto Sans Tamil', sans-serif;
+            background: linear-gradient(135deg, #FFB347 0%, #FFCC33 100%);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            border-radius: 20px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(255, 179, 71, 0.3);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+
+        .hint-button:not(:disabled):hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 179, 71, 0.4);
+        }
+
+        .hint-button:not(:disabled):active {
+            transform: translateY(0);
+            box-shadow: 0 4px 12px rgba(255, 179, 71, 0.3);
+        }
+
+        .hint-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            background: linear-gradient(135deg, #ccc 0%, #999 100%) !important;
+            box-shadow: none !important;
+            transform: none !important;
+        }
+
+        .hint-icon {
+            font-size: 1.2em;
+        }
+
+        .tile.revealed {
+            background: linear-gradient(135deg, #FFB347 0%, #FFCC33 100%);
+            border-color: rgba(255, 179, 71, 0.4);
+            animation: revealPop 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            pointer-events: none;
+            cursor: default;
+        }
+
+        @keyframes revealPop {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        .game-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+            max-width: 300px;
+            margin: 0 auto 1rem;
+        }
+
+        .points-display {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255, 255, 255, 0.15);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            animation: fadeInDown 0.8s ease-out;
+        }
+
+        .points-icon {
+            font-size: 1.2em;
+        }
+
         @media (max-width: 480px) {
             body {
                 padding: 12px;
@@ -408,253 +544,649 @@
                 padding: 10px 20px;
                 font-size: 0.9rem;
             }
+
+            .hint-button {
+                padding: 8px 16px;
+                font-size: 0.85rem;
+            }
+
+            .game-header {
+                max-width: 280px;
+            }
+
+            .points-display {
+                padding: 6px 12px;
+                font-size: 0.85rem;
+            }
+        }
+
+        .celebration {
+            background: linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(255,250,240,0.95) 100%);
+            border: 2px solid rgba(255,215,0,0.3);
+        }
+
+        .level-up-icon {
+            font-size: 64px;
+            margin-bottom: 1rem;
+            animation: bounceIn 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        .advanced-btn {
+            background: var(--advanced-badge) !important;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin: 0.5rem;
+        }
+
+        .basic-btn {
+            background: var(--basic-badge) !important;
+            margin: 0.5rem;
+        }
+
+        .level-up-emoji {
+            font-size: 1.2em;
+        }
+
+        @keyframes bounceIn {
+            0% {
+                transform: scale(0);
+            }
+            50% {
+                transform: scale(1.2);
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        .round-notification {
+            background: linear-gradient(135deg, #FFB347 0%, #FFCC33 100%);
+            color: #fff;
+            padding: 1rem;
+            border-radius: 16px;
+            margin: 1rem auto;
+            max-width: 90%;
+            text-align: center;
+            font-weight: 600;
+            animation: bounceIn 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            box-shadow: 0 4px 15px rgba(255, 179, 71, 0.3);
+        }
+
+        .level-up-modal .modal-content {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.95) 0%, rgba(79, 70, 229, 0.95) 100%);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .level-up-modal .modal-title,
+        .level-up-modal .modal-message {
+            color: #fff;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <a href="/" class="back-button">←</a>
-        <span class="level-indicator {{ level }}">{{ level }}</span>
+        <button onclick="clearCache()" class="clear-cache-button" title="Clear Cache">🔄</button>
+        <div class="game-header">
+            <div class="points-display">
+                <span class="points-icon">🏆</span>
+                <span id="pointsDisplay">{{ current_points }}</span>
+            </div>
+        </div>
         <p class="word-length">எழுத்துக்கள்: {{ word_length }}</p>
         <h2>சொல்லைக் கண்டுபிடி</h2>
         
         <div id="tiles"></div>
 
-        <form id="answer-form" method="POST">
-            <input type="hidden" id="answer" name="answer" value="{{ scrambled }}">
-            <input type="hidden" name="original_word" value="{{ original_word }}">
-            <button type="submit">சரிபார்க்கவும்</button>
-        </form>
+        <div class="game-controls">
+            <button type="button" id="hintButton" class="hint-button" onclick="showHint()">
+                <span class="hint-icon">💡</span> குறிப்பு (-2 புள்ளிகள்)
+            </button>
+            <form id="answer-form" method="POST">
+                <input type="hidden" id="answer" name="answer" value="{{ scrambled }}">
+                <input type="hidden" name="original_word" value="{{ original_word }}">
+                <button type="submit">சரிபார்க்கவும்</button>
+            </form>
+        </div>
     </div>
 
+    <!-- Result Modal -->
     <div id="result-modal" class="modal">
         <div class="modal-content">
             <div id="result-icon"></div>
             <h3 class="modal-title" id="result-title"></h3>
             <p class="modal-message" id="result-message"></p>
+            <div class="modal-buttons" id="modal-buttons"></div>
+        </div>
+    </div>
+
+    <!-- Level Upgrade Modal -->
+    <div id="upgrade-modal" class="modal">
+        <div class="modal-content celebration">
+            <div class="level-up-icon">🎮</div>
+            <h3 class="modal-title">நிலை மேம்பாடு கிடைக்கிறது!</h3>
+            <p class="modal-message">
+                வாழ்த்துக்கள்! நீங்கள் மேம்பட்ட நிலைக்கு செல்ல தகுதி பெற்றுள்ளீர்கள்.
+                மேம்பட்ட நிலைக்கு மாற விரும்புகிறீர்களா?
+            </p>
             <div class="modal-buttons">
-                <button class="modal-button retry" onclick="retrySameWord()">அதே வார்த்தையை மீண்டும் முயற்சி செய்யவும்</button>
-                <button class="modal-button" onclick="getNewWord()">புதிய வார்த்தை</button>
+                <button class="modal-button advanced-btn" onclick="handleUpgradeChoice('yes')">
+                    <span class="level-up-emoji">⬆️</span> ஆம்
+                </button>
+                <button class="modal-button basic-btn" onclick="handleUpgradeChoice('no')">
+                    <span class="level-up-emoji">➡️</span> இல்லை
+                </button>
             </div>
         </div>
     </div>
 
     <script>
-        const splitter = new GraphemeSplitter();
-        const scrambledWord = "{{ scrambled }}";
-        let graphemes;
-        
-        try {
-            // Try the Tamil pattern first
-            const tamilPattern = /[\u0B80-\u0BFF][\u0BBE-\u0BCD\u0BD7]?/g;
-            graphemes = scrambledWord.match(tamilPattern);
-            
-            // If no matches or error, fallback to grapheme splitter
-            if (!graphemes || graphemes.length === 0) {
-                graphemes = splitter.splitGraphemes(scrambledWord);
+        (function() {
+            // Initialize variables
+            const splitter = new GraphemeSplitter();
+            const scrambledWord = "{{ scrambled }}";
+            const originalWord = "{{ original_word }}";
+            let graphemes;
+            let revealedPositions = new Set();
+            let maxHints;
+            let points = parseInt("{{ current_points }}") || 0;
+            const HINT_COST = 2;
+            const currentLevel = "{{ level }}";  // Get the current level from template
+
+            // Add this function right after the HINT_COST constant declaration
+            function splitTamilWord(word) {
+                try {
+                    // First try with grapheme splitter
+                    const graphemes = splitter.splitGraphemes(word);
+                    if (graphemes && graphemes.length > 0) {
+                        return graphemes;
+                    }
+
+                    // Fallback to regex pattern if grapheme splitter fails
+                    const pattern = /[ஸ்ரீ]|[க-ஹ][ா-ூ]?[ெ-ௌ]?[்]?|[க-ஹ][ா-ூ]?[்]?[ெ-ௌ]?|[க-ஹ][ெ-ௌ]?[ா-ூ]?[்]?|[அ-ஔ]/g;
+                    const matches = word.match(pattern);
+                    if (matches && matches.length > 0) {
+                        return matches;
+                    }
+
+                    // If all else fails, split by character
+                    return Array.from(word);
+                } catch (e) {
+                    console.error('Error splitting word:', e);
+                    return Array.from(word);
+                }
             }
-        } catch (e) {
-            console.error('Error splitting characters:', e);
-            graphemes = splitter.splitGraphemes(scrambledWord);
-        }
 
-        const tilesContainer = document.getElementById('tiles');
-        const answerInput = document.getElementById('answer');
-        let draggedTile = null;
+            // Initialize game state
+            try {
+                graphemes = splitTamilWord(scrambledWord);
+                maxHints = Math.floor(graphemes.length / 2);
+                console.log('Game initialized:', {
+                    graphemes,
+                    maxHints,
+                    points
+                });
+            } catch (e) {
+                console.error('Error initializing game:', e);
+                graphemes = Array.from(scrambledWord);
+                maxHints = Math.floor(graphemes.length / 2);
+            }
 
-        // Create tiles for each grapheme
-        graphemes.forEach((char, index) => {
-            const tile = document.createElement('div');
-            tile.className = 'tile';
-            tile.draggable = true;
-            tile.textContent = char;
-            tile.dataset.char = char;
-            
-            tile.addEventListener('dragstart', handleDragStart);
-            tile.addEventListener('dragend', handleDragEnd);
-            tile.addEventListener('dragover', handleDragOver);
-            tile.addEventListener('drop', handleDrop);
-            
-            // Touch events for mobile
-            tile.addEventListener('touchstart', handleTouchStart);
-            tile.addEventListener('touchmove', handleTouchMove);
-            tile.addEventListener('touchend', handleTouchEnd);
-            
-            tilesContainer.appendChild(tile);
-        });
+            // Create tiles for each grapheme
+            const tilesContainer = document.getElementById('tiles');
+            const answerInput = document.getElementById('answer');
 
-        function handleDragStart(e) {
-            draggedTile = this;
-            this.classList.add('dragging');
-            e.dataTransfer.effectAllowed = 'move';
-            e.dataTransfer.setData('text/plain', this.dataset.char);
-        }
+            try {
+                graphemes.forEach((char, index) => {
+                    const tile = document.createElement('div');
+                    tile.className = 'tile';
+                    tile.draggable = true;
+                    tile.textContent = char;
+                    tile.dataset.char = char;
+                    
+                    tile.addEventListener('dragstart', handleDragStart);
+                    tile.addEventListener('dragend', handleDragEnd);
+                    tile.addEventListener('dragover', handleDragOver);
+                    tile.addEventListener('drop', handleDrop);
+                    
+                    tile.addEventListener('touchstart', handleTouchStart);
+                    tile.addEventListener('touchmove', handleTouchMove);
+                    tile.addEventListener('touchend', handleTouchEnd);
+                    
+                    tilesContainer.appendChild(tile);
+                });
+            } catch (e) {
+                console.error('Error creating tiles:', e);
+                Array.from(scrambledWord).forEach((char) => {
+                    const tile = document.createElement('div');
+                    tile.className = 'tile';
+                    tile.draggable = true;
+                    tile.textContent = char;
+                    tile.dataset.char = char;
+                    tilesContainer.appendChild(tile);
+                });
+            }
 
-        function handleDragEnd(e) {
-            draggedTile.classList.remove('dragging');
-            updateAnswer();
-        }
+            function updateAnswer() {
+                const currentWord = Array.from(tilesContainer.children)
+                    .map(tile => tile.dataset.char)
+                    .join('');
+                answerInput.value = currentWord;
+                console.log('Answer updated:', currentWord);
+            }
 
-        function handleDragOver(e) {
-            if (e.preventDefault) {
+            function updatePointsDisplay() {
+                const pointsDisplay = document.getElementById('pointsDisplay');
+                const hintButton = document.getElementById('hintButton');
+                
+                if (!pointsDisplay || !hintButton) {
+                    console.error('Required elements not found:', {
+                        pointsDisplay: !!pointsDisplay,
+                        hintButton: !!hintButton
+                    });
+                    return;
+                }
+
+                pointsDisplay.textContent = points;
+                
+                const remainingHints = maxHints - revealedPositions.size;
+                const canUseHint = points >= HINT_COST && revealedPositions.size < maxHints;
+                
+                hintButton.disabled = !canUseHint;
+                hintButton.title = !canUseHint ? 
+                    (points < HINT_COST ? 'போதுமான புள்ளிகள் இல்லை' : 'அனைத்து குறிப்புகளும் பயன்படுத்தப்பட்டன') : 
+                    '';
+                
+                hintButton.innerHTML = `
+                    <span class="hint-icon">💡</span> 
+                    குறிப்பு (-${HINT_COST} புள்ளிகள்) 
+                    <span class="hint-count">(${remainingHints})</span>
+                `;
+            }
+
+            // Initialize hint functionality
+            window.showHint = function() {
+                console.log('showHint called');
+                const hintButton = document.getElementById('hintButton');
+                const tilesContainer = document.getElementById('tiles');
+                
+                if (!hintButton || !tilesContainer) {
+                    console.error('Required elements not found for hint');
+                    return;
+                }
+
+                if (revealedPositions.size >= maxHints || points < HINT_COST) {
+                    console.log('Cannot show hint:', {
+                        revealedPositions: revealedPositions.size,
+                        maxHints,
+                        points,
+                        HINT_COST
+                    });
+                    return;
+                }
+
+                try {
+                    const originalGraphemes = splitTamilWord(originalWord);
+                    const tiles = Array.from(tilesContainer.children);
+                    
+                    let availablePositions = [];
+                    tiles.forEach((tile, index) => {
+                        if (!revealedPositions.has(index) && tile.textContent !== originalGraphemes[index]) {
+                            availablePositions.push(index);
+                        }
+                    });
+
+                    if (availablePositions.length === 0) {
+                        console.log('No available positions for hint');
+                        return;
+                    }
+
+                    // Deduct points before showing hint
+                    points -= HINT_COST;
+                    
+                    const randomIndex = availablePositions[Math.floor(Math.random() * availablePositions.length)];
+                    const correctChar = originalGraphemes[randomIndex];
+                    const currentTileAtPosition = tiles[randomIndex];
+                    
+                    console.log('Applying hint:', {
+                        randomIndex,
+                        correctChar,
+                        currentChar: currentTileAtPosition.textContent
+                    });
+
+                    const tileWithCorrectChar = tiles.find(tile => 
+                        tile.textContent === correctChar && !tile.classList.contains('revealed')
+                    );
+
+                    if (tileWithCorrectChar) {
+                        // Swap characters
+                        const tempChar = currentTileAtPosition.textContent;
+                        currentTileAtPosition.textContent = correctChar;
+                        tileWithCorrectChar.textContent = tempChar;
+
+                        // Update data attributes
+                        currentTileAtPosition.dataset.char = correctChar;
+                        tileWithCorrectChar.dataset.char = tempChar;
+
+                        // Mark as revealed
+                        currentTileAtPosition.classList.add('revealed');
+                        revealedPositions.add(randomIndex);
+
+                        // Update UI
+                        updateAnswer();
+                        updatePointsDisplay();
+                        
+                        console.log('Hint applied successfully');
+                    } else {
+                        console.log('Could not find tile with correct character');
+                    }
+                } catch (e) {
+                    console.error('Error showing hint:', e);
+                }
+            };
+
+            // Initialize points display and hint button state
+            updatePointsDisplay();
+
+            let draggedTile = null;
+            let touchStartX, touchStartY, touchTile;
+
+            function handleDragStart(e) {
+                if (this.classList.contains('revealed')) {
+                    e.preventDefault();
+                    return;
+                }
+                draggedTile = this;
+                this.classList.add('dragging');
+                e.dataTransfer.effectAllowed = 'move';
+                e.dataTransfer.setData('text/plain', this.dataset.char);
+            }
+
+            function handleDragEnd(e) {
+                if (draggedTile) {
+                    draggedTile.classList.remove('dragging');
+                    updateAnswer();
+                }
+            }
+
+            function handleDragOver(e) {
+                if (e.preventDefault) {
+                    e.preventDefault();
+                }
+                e.dataTransfer.dropEffect = 'move';
+                return false;
+            }
+
+            function handleDrop(e) {
+                if (e.stopPropagation) {
+                    e.stopPropagation();
+                }
+                
+                if (!draggedTile || draggedTile.classList.contains('revealed') || this.classList.contains('revealed')) {
+                    return false;
+                }
+
+                if (draggedTile !== this) {
+                    const allTiles = [...tilesContainer.children];
+                    const draggedIndex = allTiles.indexOf(draggedTile);
+                    const droppedIndex = allTiles.indexOf(this);
+
+                    // Remove the dragged tile
+                    draggedTile.parentNode.removeChild(draggedTile);
+
+                    // Insert at the new position
+                    if (droppedIndex === allTiles.length - 1) {
+                        // If dropping on the last tile
+                        this.parentNode.appendChild(draggedTile);
+                    } else {
+                        this.parentNode.insertBefore(draggedTile, this);
+                    }
+
+                    // Update the answer after reordering
+                    updateAnswer();
+                }
+                return false;
+            }
+
+            function handleTouchStart(e) {
+                if (this.classList.contains('revealed')) {
+                    return;
+                }
+                const touch = e.touches[0];
+                touchStartX = touch.clientX;
+                touchStartY = touch.clientY;
+                touchTile = this;
+                this.classList.add('dragging');
+            }
+
+            function handleTouchMove(e) {
+                if (!touchTile) return;
                 e.preventDefault();
-            }
-            e.dataTransfer.dropEffect = 'move';
-            return false;
-        }
-
-        function handleDrop(e) {
-            if (e.stopPropagation) {
-                e.stopPropagation();
-            }
-            if (draggedTile !== this) {
-                const allTiles = [...tilesContainer.children];
-                const draggedIndex = allTiles.indexOf(draggedTile);
-                const droppedIndex = allTiles.indexOf(this);
                 
-                if (draggedIndex < droppedIndex) {
-                    this.parentNode.insertBefore(draggedTile, this.nextSibling);
-                } else {
-                    this.parentNode.insertBefore(draggedTile, this);
-                }
+                const touch = e.touches[0];
+                const moveX = touch.clientX - touchStartX;
+                const moveY = touch.clientY - touchStartY;
+                
+                touchTile.style.transform = `translate(${moveX}px, ${moveY}px)`;
             }
-            return false;
-        }
 
-        // Touch event handlers
-        let touchStartX, touchStartY, touchTile;
-
-        function handleTouchStart(e) {
-            const touch = e.touches[0];
-            touchStartX = touch.clientX;
-            touchStartY = touch.clientY;
-            touchTile = this;
-            this.classList.add('dragging');
-        }
-
-        function handleTouchMove(e) {
-            if (!touchTile) return;
-            e.preventDefault();
-            
-            const touch = e.touches[0];
-            const moveX = touch.clientX - touchStartX;
-            const moveY = touch.clientY - touchStartY;
-            
-            touchTile.style.transform = `translate(${moveX}px, ${moveY}px)`;
-        }
-
-        function handleTouchEnd(e) {
-            if (!touchTile) return;
-            
-            const touch = e.changedTouches[0];
-            const endX = touch.clientX;
-            const endY = touch.clientY;
-            
-            // Find the tile element at the touch end position
-            const targetTile = document.elementFromPoint(endX, endY);
-            
-            if (targetTile && targetTile.classList.contains('tile') && targetTile !== touchTile) {
-                if (targetTile.nextSibling === touchTile) {
-                    tilesContainer.insertBefore(touchTile, targetTile);
-                } else {
-                    tilesContainer.insertBefore(touchTile, targetTile.nextSibling);
+            function handleTouchEnd(e) {
+                if (!touchTile) return;
+                
+                const touch = e.changedTouches[0];
+                const endX = touch.clientX;
+                const endY = touch.clientY;
+                
+                const targetTile = document.elementFromPoint(endX, endY);
+                
+                if (targetTile && 
+                    targetTile.classList.contains('tile') && 
+                    targetTile !== touchTile &&
+                    !targetTile.classList.contains('revealed') &&
+                    !touchTile.classList.contains('revealed')) {
+                    
+                    // Remove the touched tile
+                    touchTile.parentNode.removeChild(touchTile);
+                    
+                    // Insert at the new position
+                    if (targetTile === targetTile.parentNode.lastChild) {
+                        // If dropping on the last tile
+                        targetTile.parentNode.appendChild(touchTile);
+                    } else {
+                        targetTile.parentNode.insertBefore(touchTile, targetTile);
+                    }
                 }
+                
+                touchTile.style.transform = '';
+                touchTile.classList.remove('dragging');
+                touchTile = null;
+                updateAnswer();
             }
-            
-            touchTile.style.transform = '';
-            touchTile.classList.remove('dragging');
-            touchTile = null;
-            updateAnswer();
-        }
 
-        function updateAnswer() {
-            const currentWord = Array.from(tilesContainer.children)
-                .map(tile => tile.dataset.char)
-                .join('');
-            answerInput.value = currentWord;
-        }
+            function retrySameWord() {
+                document.getElementById('result-modal').classList.remove('show');
+                const tiles = Array.from(tilesContainer.children);
+                tiles.forEach(tile => {
+                    if (!tile.classList.contains('revealed')) {
+                        tile.classList.remove('dragging');
+                    }
+                });
+                updateAnswer();
+            }
 
-        // Form submission
-        document.getElementById('answer-form').addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            fetch(window.location.href, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                },
-                body: new URLSearchParams({
-                    answer: answerInput.value,
-                    original_word: document.querySelector('input[name="original_word"]').value
-                }).toString()
-            })
-            .then(response => response.json())
-            .then(data => {
-                const modal = document.getElementById('result-modal');
-                const icon = document.getElementById('result-icon');
-                const title = document.getElementById('result-title');
-                const message = document.getElementById('result-message');
-                const buttons = modal.querySelector('.modal-buttons');
+            function getNewWord() {
+                window.location.reload();
+            }
 
-                if (data.correct) {
-                    icon.innerHTML = '🎉';
-                    icon.className = 'success-icon';
-                    title.textContent = 'வாழ்த்துக்கள்!';
-                    message.textContent = 'நீங்கள் சரியான சொல்லைக் கண்டுபிடித்துவிட்டீர்கள்!';
-                    buttons.innerHTML = `
-                        <button class="modal-button" onclick="window.location='/'">முகப்பு</button>
-                        <button class="modal-button" onclick="getNewWord()">புதிய வார்த்தை</button>
-                    `;
-                } else {
-                    icon.innerHTML = '😕';
-                    icon.className = 'failure-icon';
-                    title.textContent = 'மீண்டும் முயற்சி செய்யவும்';
-                    message.textContent = 'சரியான சொல்லைக் கண்டுபிடிக்க முயற்சி செய்யவும்.';
-                    buttons.innerHTML = `
-                        <button class="modal-button retry" onclick="retrySameWord()">அதே வார்த்தையை மீண்டும் முயற்சி செய்யவும்</button>
-                        <button class="modal-button" onclick="getNewWord()">புதிய வார்த்தை</button>
-                    `;
-                }
+            // Add modal handling functions at the top level
+            function showModal(modalId) {
+                document.getElementById(modalId).classList.add('show');
+            }
 
-                modal.classList.add('show');
+            function hideModal(modalId) {
+                document.getElementById(modalId).classList.remove('show');
+            }
+
+            function handleUpgradeChoice(choice) {
+                hideModal('upgrade-modal');
+                fetch('/upgrade_level', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: new URLSearchParams({
+                        choice: choice
+                    }).toString()
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.redirect) {
+                        window.location.href = data.redirect;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+            }
+
+            // Handle form submission
+            document.getElementById('answer-form').addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                fetch(window.location.href, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: new URLSearchParams({
+                        answer: answerInput.value,
+                        original_word: document.querySelector('input[name="original_word"]').value
+                    }).toString()
+                })
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Response data:', data); // Debug log
+                    
+                    if (data.correct) {
+                        points = data.current_points;
+                        updatePointsDisplay();
+                        
+                        // Check if we should show upgrade choice
+                        if (data.show_upgrade_choice) {
+                            console.log('Showing upgrade choice modal:', {
+                                currentPoints: data.current_points,
+                                currentLevel: currentLevel
+                            });
+                            
+                            // Show upgrade modal directly
+                            showModal('upgrade-modal');
+                        } else {
+                            // Regular success modal
+                            const modal = document.getElementById('result-modal');
+                            const icon = document.getElementById('result-icon');
+                            const title = document.getElementById('result-title');
+                            const message = document.getElementById('result-message');
+                            const buttons = document.getElementById('modal-buttons');
+                            
+                            icon.innerHTML = '🎉';
+                            icon.className = 'success-icon';
+                            title.textContent = 'வாழ்த்துக்கள்!';
+                            
+                            let successMessage = `நீங்கள் சரியான சொல்லைக் கண்டுபிடித்துவிட்டீர்கள்! +10 புள்ளிகள்`;
+                            if (data.new_round) {
+                                successMessage = '🎉 அனைத்து வார்த்தைகளையும் முடித்துவிட்டீர்கள்! புதிய சுற்று தொடங்குகிறது!';
+                            } else if (data.level_up) {
+                                successMessage = `வாழ்த்துக்கள்! நீங்கள் ${data.current_points} புள்ளிகளை எட்டியுள்ளீர்கள்! இப்போது நீண்ட வார்த்தைகளுடன் விளையாடலாம்!`;
+                            }
+                            
+                            message.textContent = successMessage;
+                            modal.querySelector('.modal-content').classList.toggle('level-up-modal', data.level_up);
+                            
+                            buttons.innerHTML = `
+                                <button class="modal-button" onclick="getNewWord()">அடுத்த வார்த்தை</button>
+                            `;
+                            showModal('result-modal');
+                        }
+                    } else {
+                        // Error modal
+                        const modal = document.getElementById('result-modal');
+                        const icon = document.getElementById('result-icon');
+                        const title = document.getElementById('result-title');
+                        const message = document.getElementById('result-message');
+                        const buttons = document.getElementById('modal-buttons');
+                        
+                        icon.innerHTML = '😕';
+                        icon.className = 'failure-icon';
+                        title.textContent = 'மீண்டும் முயற்சி செய்யவும்';
+                        message.textContent = 'சரியான சொல்லைக் கண்டுபிடிக்க முயற்சி செய்யவும்.';
+                        modal.querySelector('.modal-content').classList.remove('level-up-modal');
+                        buttons.innerHTML = `
+                            <button class="modal-button retry" onclick="retrySameWord()">அதே வார்த்தையை மீண்டும் முயற்சி செய்யவும்</button>
+                            <button class="modal-button" onclick="getNewWord()">புதிய வார்த்தை</button>
+                        `;
+                        showModal('result-modal');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
             });
-        });
 
-        // Close modal when clicking outside
-        document.getElementById('result-modal').addEventListener('click', function(e) {
-            if (e.target === this) {
-                this.classList.remove('show');
-            }
-        });
-
-        function retrySameWord() {
-            // Reset tiles to original scrambled state
-            tilesContainer.innerHTML = '';
-            graphemes.forEach((char, index) => {
-                const tile = document.createElement('div');
-                tile.className = 'tile';
-                tile.draggable = true;
-                tile.textContent = char;
-                tile.dataset.char = char;
-                
-                tile.addEventListener('dragstart', handleDragStart);
-                tile.addEventListener('dragend', handleDragEnd);
-                tile.addEventListener('dragover', handleDragOver);
-                tile.addEventListener('drop', handleDrop);
-                
-                tile.addEventListener('touchstart', handleTouchStart);
-                tile.addEventListener('touchmove', handleTouchMove);
-                tile.addEventListener('touchend', handleTouchEnd);
-                
-                tilesContainer.appendChild(tile);
+            // Close modals when clicking outside
+            document.querySelectorAll('.modal').forEach(modal => {
+                modal.addEventListener('click', function(e) {
+                    if (e.target === this) {
+                        hideModal(this.id);
+                    }
+                });
             });
-            document.getElementById('result-modal').classList.remove('show');
-            updateAnswer();
-        }
 
-        function getNewWord() {
-            window.location.reload();
-        }
+            // Make functions globally available
+            window.retrySameWord = retrySameWord;
+            window.getNewWord = getNewWord;
+            window.handleUpgradeChoice = handleUpgradeChoice;
+            window.showModal = showModal;
+            window.hideModal = hideModal;
+
+            function clearCache() {
+                if (confirm('உங்கள் முன்னேற்றத்தை அழிக்க விரும்புகிறீர்களா? இந்த செயலை திரும்ப பெற முடியாது.')) {
+                    fetch('/clear_session', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            // Show success message modal
+                            const modal = document.getElementById('result-modal');
+                            const icon = document.getElementById('result-icon');
+                            const title = document.getElementById('result-title');
+                            const message = document.getElementById('result-message');
+                            const buttons = document.getElementById('modal-buttons');
+                            
+                            icon.innerHTML = '✨';
+                            icon.className = 'success-icon';
+                            title.textContent = 'கேஷ் அழிக்கப்பட்டது';
+                            message.textContent = 'உங்கள் முன்னேற்றம் மற்றும் புள்ளிகள் மீட்டமைக்கப்பட்டன.';
+                            buttons.innerHTML = `
+                                <button class="modal-button" onclick="window.location.href='/'">முகப்புக்குச் செல்க</button>
+                            `;
+                            showModal('result-modal');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error clearing cache:', error);
+                    });
+                }
+            }
+
+            // Make clearCache function globally available
+            window.clearCache = clearCache;
+        })();
     </script>
 </body>
 </html> 
