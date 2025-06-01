@@ -3,6 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>Tamil Anagram Game</title>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Tamil:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/grapheme-splitter@1.0.4/index.js"></script>
@@ -12,9 +15,16 @@
             padding: 0;
             box-sizing: border-box;
             -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+            user-select: none;
+            -webkit-user-select: none;
         }
 
         :root {
+            --safe-area-inset-top: env(safe-area-inset-top, 0px);
+            --safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);
+            --safe-area-inset-left: env(safe-area-inset-left, 0px);
+            --safe-area-inset-right: env(safe-area-inset-right, 0px);
             --gradient-bg: linear-gradient(135deg, #764BA2 0%, #667EEA 100%);
             --card-bg: rgba(255, 255, 255, 0.1);
             --text-primary: #ffffff;
@@ -30,11 +40,21 @@
             font-family: 'Noto Sans Tamil', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
         }
 
+        html {
+            height: -webkit-fill-available;
+            height: 100%;
+            overflow: hidden;
+        }
+
         body {
             font-family: 'Noto Sans Tamil', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: var(--gradient-bg);
             min-height: 100vh;
-            padding: 16px;
+            min-height: -webkit-fill-available;
+            padding: calc(16px + var(--safe-area-inset-top)) 
+                     calc(16px + var(--safe-area-inset-right))
+                     calc(16px + var(--safe-area-inset-bottom))
+                     calc(16px + var(--safe-area-inset-left));
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -51,8 +71,21 @@
             margin: 0 auto;
             text-align: center;
             position: relative;
-            padding: 1.5rem;
+            padding: 1rem;
+            height: auto;
+            display: flex;
+            flex-direction: column;
             animation: fadeIn 0.8s ease-out;
+        }
+
+        .game-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 1rem;
+            padding: 1rem 0;
+            overflow: hidden;
         }
 
         .back-button {
@@ -103,77 +136,59 @@
         #tiles {
             display: flex;
             flex-wrap: wrap;
-            gap: 10px;
+            gap: 12px;
             justify-content: center;
-            margin-bottom: 2rem;
+            align-items: center;
             padding: 1rem;
-            animation: fadeIn 1s ease-out 0.6s backwards;
+            margin: 0 auto;
             touch-action: none;
-            -webkit-touch-callout: none;
-            -webkit-user-select: none;
-            user-select: none;
-            position: relative;
-            z-index: 1;
+            min-height: 150px;
+            flex: 1;
+            max-width: 400px;
         }
 
         .tile {
+            --tile-size: min(45px, 10vw);
+            width: var(--tile-size);
+            height: var(--tile-size);
+            font-size: calc(var(--tile-size) * 0.5);
             display: flex;
             align-items: center;
             justify-content: center;
-            width: 50px;
-            height: 50px;
-            font-size: 24px;
-            font-family: 'Noto Sans Tamil', sans-serif;
             background: var(--tile-bg);
             border: 1px solid rgba(255, 255, 255, 0.15);
-            border-radius: 12px;
-            box-shadow: 0 4px 12px var(--shadow-color);
+            border-radius: 8px;
+            box-shadow: 0 2px 8px var(--shadow-color);
             cursor: pointer;
             touch-action: none;
-            user-select: none;
-            -webkit-touch-callout: none;
-            -webkit-user-select: none;
-            -webkit-tap-highlight-color: transparent;
-            will-change: transform, opacity;
-            transform: translate3d(0, 0, 0);
+            will-change: transform;
+            transform: translateZ(0);
             backface-visibility: hidden;
-            perspective: 1000;
-            transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1),
-                        box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-            line-height: 1;
+            transition: transform 0.15s ease-out;
             font-weight: 500;
-            padding: 0;
-            margin: 0;
-            text-align: center;
-            vertical-align: middle;
             position: relative;
             z-index: 1;
         }
 
-        .tile:active {
-            transform: scale(0.95) translate3d(0, 0, 0);
-            box-shadow: 0 2px 8px var(--shadow-color);
-        }
-
         .tile.dragging {
-            opacity: 0.9;
-            transform: scale(1.05) translate3d(0, 0, 0);
-            box-shadow: 0 8px 24px var(--shadow-color);
-            z-index: 10;
+            opacity: 0.95;
+            transform: scale(1.1) translateZ(0);
+            box-shadow: 0 4px 12px var(--shadow-color);
+            z-index: 1000;
             transition: none;
         }
 
         .tile.revealed {
             background: var(--hint-gradient);
             border-color: rgba(255, 179, 71, 0.4);
-            animation: revealPop 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            animation: revealPop 0.3s ease-out;
             pointer-events: none;
             cursor: default;
         }
 
         .tile-hover {
-            transform: scale(1.1);
-            box-shadow: 0 0 15px rgba(79, 172, 254, 0.7);
+            transform: scale(1.05) translateZ(0);
+            box-shadow: 0 3px 10px rgba(79, 172, 254, 0.4);
             z-index: 2;
         }
 
@@ -181,82 +196,42 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 12px;
+            gap: max(1.5vh, 12px);
             width: 100%;
-            max-width: 200px;
+            max-width: min(300px, 90vw);
             margin: 0 auto;
+            padding: max(1vh, 0.5rem) 0;
         }
 
-        .hint-button {
-            font-family: 'Noto Sans Tamil', sans-serif;
-            background: var(--hint-gradient);
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            font-size: 0.9rem;
-            font-weight: 600;
-            border-radius: 20px;
-            cursor: pointer;
-            box-shadow: 0 4px 15px rgba(255, 179, 71, 0.3);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        .hint-button, button[type="submit"] {
             width: 100%;
+            padding: max(10px, 2vh) max(20px, 4vw);
+            font-size: max(14px, 2.5vh);
+            border-radius: 9999px;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 8px;
-            margin-bottom: 10px;
+            min-height: 44px;
+            touch-action: manipulation;
         }
 
-        .hint-button:not(:disabled):hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(255, 179, 71, 0.4);
-        }
-
-        .hint-button:not(:disabled):active {
-            transform: translateY(0);
-            box-shadow: 0 4px 12px rgba(255, 179, 71, 0.3);
-        }
-
-        .hint-button:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            background: linear-gradient(135deg, #ccc 0%, #999 100%) !important;
-            box-shadow: none !important;
-            transform: none !important;
-        }
-
-        .hint-icon {
-            font-size: 1.2em;
+        .hint-button {
+            background: var(--hint-gradient);
+            color: white;
+            box-shadow: 0 4px 15px rgba(255, 179, 71, 0.3);
         }
 
         button[type="submit"] {
-            font-family: 'Noto Sans Tamil', sans-serif;
             background: var(--submit-gradient);
             color: white;
-            border: none;
-            padding: 12px 24px;
-            font-size: 1rem;
-            font-weight: 600;
-            border-radius: 20px;
-            cursor: pointer;
             box-shadow: 0 4px 15px rgba(79, 172, 254, 0.3);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            width: 100%;
-            max-width: 200px;
-            margin-top: 1rem;
             text-transform: uppercase;
             letter-spacing: 1px;
-            animation: fadeInUp 0.8s ease-out 0.8s backwards;
-        }
-
-        button[type="submit"]:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(79, 172, 254, 0.4);
-        }
-
-        button[type="submit"]:active {
-            transform: translateY(0);
-            box-shadow: 0 4px 12px rgba(79, 172, 254, 0.3);
         }
 
         .game-header {
@@ -424,110 +399,99 @@
         }
 
         @media (max-width: 480px) {
-            body {
-                padding: 12px;
-                touch-action: none;
-                -webkit-overflow-scrolling: touch;
-                overflow-x: hidden;
-            }
-
             .container {
-                padding: 1rem;
-                touch-action: none;
-                overflow: hidden;
+                padding: 0.5rem;
             }
 
-            h2 {
-                font-size: 1.3rem;
-                margin-bottom: 1.5rem;
+            .game-content {
+                gap: 0.5rem;
             }
 
-            #tiles {
-                gap: 8px;
-                padding: 0.8rem;
-                margin: 0 auto 2rem;
+            .game-controls {
+                padding-bottom: max(var(--safe-area-inset-bottom), 1rem);
             }
 
-            .tile {
-                width: 42px;
-                height: 42px;
-                font-size: 20px;
+            .hint-button, button[type="submit"] {
+                font-size: 16px;
+                padding: 12px 20px;
             }
 
             .modal-content {
+                width: 95%;
                 padding: 1.5rem;
+                margin: 1rem;
             }
 
-            .modal-title {
-                font-size: 1.2rem;
+            #tiles {
+                gap: 10px;
+                padding: 0.8rem;
+                margin-bottom: 1rem;
             }
 
-            .modal-message {
-                font-size: 0.9rem;
+            .tile {
+                --tile-size: min(40px, 9vw);
+                box-shadow: 0 1px 4px var(--shadow-color);
             }
 
-            .modal-button {
-                padding: 8px 16px;
-                font-size: 0.85rem;
-                min-width: 100px;
+            .tile.dragging {
+                box-shadow: 0 2px 8px var(--shadow-color);
+            }
+        }
+
+        @media (max-height: 600px) {
+            .container {
+                padding: 0.5rem;
             }
 
-            .word-length {
-                font-size: 0.8rem;
+            #tiles {
+                padding: 0.5rem;
+                gap: 8px;
             }
 
-            button[type="submit"] {
-                padding: 10px 20px;
-                font-size: 0.9rem;
+            .tile {
+                --tile-size: min(max(36px, 9vw), 48px);
             }
 
-            .hint-button {
-                padding: 8px 16px;
-                font-size: 0.85rem;
-            }
-
-            .game-header {
-                max-width: 280px;
-            }
-
-            .points-display {
-                padding: 6px 12px;
-                font-size: 0.85rem;
+            .game-controls {
+                gap: 8px;
             }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <a href="/" class="back-button">←</a>
         <div class="game-header">
+            <a href="/" class="back-button" role="button" aria-label="Back to home">←</a>
             <div class="points-display">
-                <span class="points-icon">🏆</span>
-                <span id="pointsDisplay">{{ current_points }}</span>
+                <span class="points-icon" aria-hidden="true">🏆</span>
+                <span id="pointsDisplay" aria-label="Current points">{{ current_points }}</span>
             </div>
         </div>
         
-        <p class="word-length">எழுத்துக்கள்: {{ word_length }}</p>
-        <h2>சொல்லைக் கண்டுபிடி</h2>
-        
-        <div id="tiles"></div>
+        <div class="game-content">
+            <p class="word-length">எழுத்துக்கள்: {{ word_length }}</p>
+            <h2>சொல்லைக் கண்டுபிடி</h2>
+            
+            <div id="tiles" role="grid" aria-label="Letter tiles"></div>
 
-        <div class="game-controls">
-            <button type="button" id="hintButton" class="hint-button">
-                <span class="hint-icon">💡</span> குறிப்பு (-2 புள்ளிகள்)
-            </button>
-            <form id="answer-form" method="POST">
-                <input type="hidden" id="answer" name="answer" value="{{ scrambled }}">
-                <input type="hidden" name="original_word" value="{{ original_word }}">
-                <button type="submit">சரிபார்க்கவும்</button>
-            </form>
+            <div class="game-controls">
+                <button type="button" id="hintButton" class="hint-button" aria-label="Get hint">
+                    <span class="hint-icon" aria-hidden="true">💡</span>
+                    <span>குறிப்பு (-2 புள்ளிகள்)</span>
+                </button>
+                <form id="answer-form" method="POST">
+                    <input type="hidden" id="answer" name="answer" value="{{ scrambled }}">
+                    <input type="hidden" name="original_word" value="{{ original_word }}">
+                    <button type="submit" aria-label="Check answer">சரிபார்க்கவும்</button>
+                </form>
+            </div>
         </div>
     </div>
 
     <!-- Result Modal -->
-    <div id="result-modal" class="modal">
+    <div id="result-modal" class="modal" role="dialog" aria-modal="true">
         <div class="modal-content">
-            <div id="result-icon"></div>
+            <div id="result-icon" aria-hidden="true"></div>
             <h3 class="modal-title" id="result-title"></h3>
             <p class="modal-message" id="result-message"></p>
             <div class="modal-buttons" id="modal-buttons"></div>
@@ -820,16 +784,19 @@
                     
                     e.preventDefault();
                     const touch = e.touches[0];
+                    
                     state.touchStartX = touch.clientX;
                     state.touchStartY = touch.clientY;
                     state.touchTile = e.target;
-
+                    
                     const rect = state.touchTile.getBoundingClientRect();
                     state.initialX = rect.left;
                     state.initialY = rect.top;
-
-                    state.touchTile.style.zIndex = '1000';
-                    state.touchTile.classList.add('dragging');
+                    
+                    requestAnimationFrame(() => {
+                        state.touchTile.style.zIndex = '1000';
+                        state.touchTile.classList.add('dragging');
+                    });
                 },
 
                 handleTouchMove(e) {
@@ -840,25 +807,27 @@
                     const moveX = touch.clientX - state.touchStartX;
                     const moveY = touch.clientY - state.touchStartY;
                     
-                    state.touchTile.style.transform = `translate(${moveX}px, ${moveY}px)`;
-                    
-                    const elemBelow = document.elementFromPoint(touch.clientX, touch.clientY);
-                    
-                    // Reset all tiles' styles
-                    const tiles = document.querySelectorAll('.tile');
-                    tiles.forEach(tile => {
-                        if (tile !== state.touchTile) {
-                            tile.style.transform = '';
-                            tile.classList.remove('tile-hover');
+                    requestAnimationFrame(() => {
+                        state.touchTile.style.transform = `translate3d(${moveX}px, ${moveY}px, 0)`;
+                        
+                        const elemBelow = document.elementFromPoint(touch.clientX, touch.clientY);
+                        
+                        // Reset all tiles' styles
+                        const tiles = document.querySelectorAll('.tile');
+                        tiles.forEach(tile => {
+                            if (tile !== state.touchTile) {
+                                tile.style.transform = '';
+                                tile.classList.remove('tile-hover');
+                            }
+                        });
+                        
+                        if (elemBelow && 
+                            elemBelow.classList.contains('tile') && 
+                            elemBelow !== state.touchTile && 
+                            !elemBelow.classList.contains('revealed')) {
+                            elemBelow.classList.add('tile-hover');
                         }
                     });
-                    
-                    if (elemBelow && 
-                        elemBelow.classList.contains('tile') && 
-                        elemBelow !== state.touchTile && 
-                        !elemBelow.classList.contains('revealed')) {
-                        elemBelow.classList.add('tile-hover');
-                    }
                 },
 
                 handleTouchEnd(e) {
@@ -873,8 +842,7 @@
                     if (elemBelow && 
                         elemBelow.classList.contains('tile') && 
                         elemBelow !== state.touchTile && 
-                        !elemBelow.classList.contains('revealed') && 
-                        !state.touchTile.classList.contains('revealed')) {
+                        !elemBelow.classList.contains('revealed')) {
                         this.swapTiles(state.touchTile, elemBelow);
                     }
                     
@@ -896,6 +864,7 @@
                     
                     document.querySelectorAll('.tile').forEach(tile => {
                         tile.classList.remove('tile-hover');
+                        tile.style.transform = '';
                     });
                 },
 
