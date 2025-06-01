@@ -4,7 +4,7 @@ import regex
 import os
 
 app = Flask(__name__)
-app.secret_key = 'supersecretkey'
+app.secret_key = os.environ.get('SECRET_KEY', 'supersecretkey')  # Allow setting via environment variable
 
 def load_words():
     """Load words from file and categorize them by length for basic and advanced levels"""
@@ -318,5 +318,6 @@ def clear_session():
     })
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port)
 
