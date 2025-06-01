@@ -20,15 +20,11 @@ def load_words():
         words_by_level = {
             'basic': {
                 'level1': [w for w in basic_words if len(w) <= 3],
-                'level2': [w for w in basic_words if len(w) == 4],
-                'level3': [w for w in basic_words if len(w) == 5],
+                'level2': [w for w in basic_words if len(w) >= 4 and len(w) <= 5],
             },
             'advanced': {
-                'level1': [w for w in advanced_words if len(w) == 6],
-                'level2': [w for w in advanced_words if len(w) == 7],
-                'level3': [w for w in advanced_words if len(w) == 8],
-                'level4': [w for w in advanced_words if len(w) == 9],
-                'level5': [w for w in advanced_words if len(w) >= 10],
+                'level1': [w for w in advanced_words if len(w) >= 6 and len(w) <= 9],
+                'level2': [w for w in advanced_words if len(w) >= 10],
             }
         }
         
@@ -42,8 +38,8 @@ def load_words():
     except Exception as e:
         print(f"Error loading words: {e}")
         return {
-            'basic': {'level1': [], 'level2': [], 'level3': []},
-            'advanced': {'level1': [], 'level2': [], 'level3': [], 'level4': [], 'level5': []}
+            'basic': {'level1': [], 'level2': []},
+            'advanced': {'level1': [], 'level2': []}
         }
 
 def split_tamil_word(word):
@@ -132,26 +128,18 @@ def get_scrambled_word(word):
         print(f"Error scrambling word: {e}")
         return word[::-1]  # Fallback to simple reverse
 
-def get_current_level(points, game_mode='basic'):
+def get_current_level(points, game_mode):
     """Determine the current level based on points and game mode"""
     if game_mode == 'basic':
-        if points < 50:
+        if points < 15:
             return 'level1'  # ≤3 characters
-        elif points < 100:
-            return 'level2'  # 4 characters
         else:
-            return 'level3'  # 5 characters
+            return 'level2'  # 5 characters
     else:  # advanced mode
-        if points < 50:
+        if points < 100:
             return 'level1'  # 6 characters
-        elif points < 100:
-            return 'level2'  # 7 characters
-        elif points < 150:
-            return 'level3'  # 8 characters
-        elif points < 200:
-            return 'level4'  # 9 characters
         else:
-            return 'level5'  # ≥10 characters
+            return 'level2'  # ≥10 characters
 
 def get_next_word(words, current_points, game_mode='basic'):
     """Get next word ensuring no repetition until all words are used"""
@@ -250,28 +238,50 @@ def play(level):
 
 @app.route('/play/<level>', methods=['POST'])
 def check_answer(level):
-    answer = request.form.get('answer', '')
+    action = request.form.get('action', '')
     original_word = request.form.get('original_word', '')
     current_points = session.get('points', 0)
     current_level = session.get('current_level', 'basic')
     
+    # Handle hint action
+    if action == 'hint':
+        hint_cost = 2  # Fixed hint cost of 2 points
+        current_points = max(0, current_points - hint_cost)  # Don't go below 0
+        session['points'] = current_points
+        return jsonify({
+            'success': True,
+            'current_points': current_points
+        })
+    
+    # Handle regular answer submission
+    answer = request.form.get('answer', '')
     is_correct = answer == original_word
+    show_downgrade = False
     
     if is_correct:
-        # Update points in session
-        current_points += 10
+        # Award different points based on level
+        points_to_add = 15 if level == 'advanced' else 10
+        current_points += points_to_add
         session['points'] = current_points
         
         # Check if we hit a 50-point milestone and are in basic level
         show_upgrade_choice = (
             current_points >= 50 and  # Has enough points
-            current_points % 50 == 0 and  # Is at a milestone (50, 100, etc.)
-            (current_level == 'basic' or  # Is in basic level
-            level == 'basic' ) # Current route is basic
+            level == 'basic'  # Current route is basic
         )
+        
     else:
+        # Deduct points for wrong answer
+        points_to_deduct = 3  # Changed from 5 to 3 points for wrong answers
+        current_points = max(0, current_points - points_to_deduct)  # Don't go below 0
+        session['points'] = current_points        
         show_upgrade_choice = False
-    
+        
+    # Check if we need to downgrade to basic level
+    if level == 'advanced' and current_points < 50:
+        show_downgrade = True
+        session['current_level'] = 'basic'  # Set level back to basic
+
     return jsonify({
         'correct': is_correct,
         'new_round': session.get('new_round', False),
@@ -279,7 +289,9 @@ def check_answer(level):
         'next_level_points': session.get('next_level_points', 50),
         'current_points': current_points,
         'show_upgrade_choice': show_upgrade_choice,
-        'current_level': current_level
+        'show_downgrade': show_downgrade,
+        'current_level': session.get('current_level', 'basic'),
+        'points_earned': points_to_add if is_correct else -points_to_deduct
     })
 
 @app.route('/upgrade_level', methods=['POST'])

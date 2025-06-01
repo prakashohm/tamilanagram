@@ -148,10 +148,145 @@
                 padding: 1.5rem;
             }
         }
+
+        .clear-cache-button {
+            position: absolute;
+            right: 16px;
+            top: 16px;
+            background: var(--card-bg);
+            border: none;
+            font-size: 1.2rem;
+            cursor: pointer;
+            color: var(--text-primary);
+            padding: 8px;
+            border-radius: 50%;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+            text-decoration: none;
+            box-shadow: 0 2px 8px var(--shadow-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+        }
+
+        .clear-cache-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px var(--shadow-color);
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .clear-cache-button:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 6px var(--shadow-color);
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .modal.show {
+            display: flex;
+            opacity: 1;
+        }
+
+        .modal-content {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 2rem;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 320px;
+            text-align: center;
+            position: relative;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            transform: scale(0.9);
+            transition: transform 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .modal.show .modal-content {
+            transform: scale(1);
+        }
+
+        .modal-title {
+            font-size: 1.3rem;
+            margin-bottom: 1rem;
+            color: #1a1a1a;
+            font-weight: 700;
+        }
+
+        .modal-message {
+            font-size: 1rem;
+            margin-bottom: 1.5rem;
+            color: #333;
+            line-height: 1.4;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 1.5rem;
+        }
+
+        .modal-button {
+            font-family: 'Noto Sans Tamil', sans-serif;
+            background: var(--basic-badge);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            border-radius: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 120px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            box-shadow: 0 4px 12px rgba(79, 172, 254, 0.3);
+        }
+
+        .success-icon {
+            color: #4CAF50;
+            font-size: 48px;
+            margin-bottom: 1rem;
+            animation: iconPop 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        @keyframes iconPop {
+            0% {
+                transform: scale(0);
+                opacity: 0;
+            }
+            50% {
+                transform: scale(1.1);
+            }
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
     </style>
 </head>
 <body>
     <div class="container">
+        <button onclick="clearCache()" class="clear-cache-button" title="Clear Cache">🔄</button>
         <div class="welcome-card">
             <h1>தமிழ் சொல் விளையாட்டு</h1>
             <p class="subtitle">எழுத்துக்களை மாற்றி அமைத்து சொல்லைக் கண்டுபிடிக்கவும்</p>
@@ -170,8 +305,8 @@
                     <span>குறிப்பு பெற 2 புள்ளிகள் குறைக்கப்படும்</span>
                 </div>
                 <div class="rule-item">
-                    <span class="rule-icon">📝</span>
-                    <span>ஒவ்வொரு வார்த்தையும் 4 அல்லது அதற்கும் குறைவான எழுத்துக்களைக் கொண்டிருக்கும்</span>
+                    <span class="rule-icon">❌</span>
+                    <span>தவறான விடைக்கு 3 புள்ளிகள் குறைக்கப்படும்</span>
                 </div>
             </div>
 
@@ -180,5 +315,58 @@
             </a>
         </div>
     </div>
+
+    <!-- Result Modal -->
+    <div id="result-modal" class="modal">
+        <div class="modal-content">
+            <div id="result-icon"></div>
+            <h3 class="modal-title" id="modal-title"></h3>
+            <p class="modal-message" id="modal-message"></p>
+            <div class="modal-buttons" id="modal-buttons"></div>
+        </div>
+    </div>
+
+    <script>
+        function clearCache() {
+            if (confirm('உங்கள் முன்னேற்றத்தை அழிக்க விரும்புகிறீர்களா? இந்த செயலை திரும்ப பெற முடியாது.')) {
+                fetch('/clear_session', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Show success message modal
+                        const modal = document.getElementById('result-modal');
+                        const icon = document.getElementById('result-icon');
+                        const title = document.getElementById('modal-title');
+                        const message = document.getElementById('modal-message');
+                        const buttons = document.getElementById('modal-buttons');
+                        
+                        icon.innerHTML = '✨';
+                        icon.className = 'success-icon';
+                        title.textContent = 'கேஷ் அழிக்கப்பட்டது';
+                        message.textContent = 'உங்கள் முன்னேற்றம் மற்றும் புள்ளிகள் மீட்டமைக்கப்பட்டன.';
+                        buttons.innerHTML = `
+                            <button class="modal-button" onclick="window.location.reload()">சரி</button>
+                        `;
+                        modal.classList.add('show');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error clearing cache:', error);
+                });
+            }
+        }
+
+        // Close modal when clicking outside
+        document.getElementById('result-modal').addEventListener('click', (e) => {
+            if (e.target === document.getElementById('result-modal')) {
+                e.target.classList.remove('show');
+            }
+        });
+    </script>
 </body>
 </html> 
